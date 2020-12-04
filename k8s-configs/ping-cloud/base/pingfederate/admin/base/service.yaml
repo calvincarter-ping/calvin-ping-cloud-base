@@ -1,0 +1,15 @@
+#
+# This service exposes the pingfederate admin port to the cluster.
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: pingfederate-admin
+  labels:
+    role: pingfederate-admin
+spec:
+  ports:
+  - port: 9999
+    name: pingfederate-admin
+  selector:
+    role: pingfederate-admin

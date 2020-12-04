@@ -1,0 +1,34 @@
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+namespace: ${PING_CLOUD_NAMESPACE}
+
+resources:
+# PingCloud Global Resources
+- ../../base/ping-cloud
+
+# Product Resources
+- pingaccess
+- pingaccess/admin
+- pingaccess/engine
+
+- pingaccess-was
+- pingaccess-was/admin
+- pingaccess-was/engine
+
+- pingfederate
+- pingfederate/admin
+- pingfederate/engine
+
+- pingdirectory
+
+generatorOptions:
+  disableNameSuffixHash: false
+
+patchesStrategicMerge:
+
+### All secrets used by supporting tools ###
+- secrets.yaml
+
+### Regional enablement - remove admins, backups, etc. from secondary ###
+- ../../base/ping-cloud/remove-from-secondary-patch.yaml

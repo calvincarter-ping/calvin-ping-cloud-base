@@ -1,0 +1,8 @@
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+resources:
+- ${K8S_GIT_URL}/k8s-configs/ping-cloud/${KUSTOMIZE_BASE}/pingaccess-was?ref=${K8S_GIT_BRANCH}
+
+generatorOptions:
+  disableNameSuffixHash: true
