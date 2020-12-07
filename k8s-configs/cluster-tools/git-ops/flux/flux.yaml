@@ -88,7 +88,7 @@ spec:
     spec:
       initContainers:
       - name: add-envsubst
-        image: pingidentity/pingtoolkit:2006-1.0.0
+        image: pingcloud-mirror.jfrog.io/pingidentity/pingtoolkit:2006-1.0.0
         command:
         - sh
         - -c
@@ -107,7 +107,9 @@ spec:
         - --git-email=flux@example.com
         - --listen-metrics=:3031
         - --git-poll-interval=60s
-        image: docker.io/fluxcd/flux:1.17.0
+        - --git-readonly
+        - --registry-disable-scanning
+        image: docker.io/fluxcd/flux:1.21.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:

@@ -9,18 +9,17 @@ test -f "${STAGING_DIR}/ds_env_vars" && . "${STAGING_DIR}/ds_env_vars"
 ########################################################################################################################
 function stop_server()
 {
-  SERVER_PID=$(pgrep -alf java | grep 'run.properties' | awk '{ print $1; }')
+  SERVER_PID=$(pgrep -alf java | grep 'run.properties' | awk '{ print $1 }')
   kill "${SERVER_PID}"
   while true; do
-    SERVER_PID=$(pgrep -alf java | grep 'run.properties' | awk '{ print $1; }')
+    SERVER_PID=$(pgrep -alf java | grep 'run.properties' | awk '{ print $1 }')
     if test -z ${SERVER_PID}; then
         break
     else
-      beluga_log "waiting for PingAccess to terminate due to error"
+      beluga_log "Waiting for PingAccess to terminate"
       sleep 3
     fi
   done
-  exit 1
 }
 
 ########################################################################################################################
@@ -40,14 +39,14 @@ function make_api_request() {
     "${VERBOSE}" && set -x
 
     if test "${curl_result}" -ne 0; then
-        beluga_log "Admin API connection refused"
-        "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+        beluga_log "Admin API connection refused with the curl exit code: ${curl_result}"
+        return 1
     fi
 
     if test "${http_code}" -ne 200; then
         beluga_log "API call returned HTTP status code: ${http_code}"
         cat ${OUT_DIR}/api_response.txt && rm -f ${OUT_DIR}/api_response.txt
-        "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+        return 1
     fi
 
     cat ${OUT_DIR}/api_response.txt && rm -f ${OUT_DIR}/api_response.txt
@@ -74,12 +73,12 @@ function make_initial_api_request() {
 
     if test "${curl_result}" -ne 0; then
         beluga_log "Admin API connection refused"
-        "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+        return 1
     fi
 
     if test "${http_code}" -ne 200; then
         beluga_log "API call returned HTTP status code: ${http_code}"
-        "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+        return 1
     fi
 
     cat ${OUT_DIR}/api_response.txt && rm -f ${OUT_DIR}/api_response.txt
@@ -107,12 +106,12 @@ function make_api_request_download() {
 
     if test "${curl_result}" -ne 0; then
         beluga_log "Admin API connection refused"
-        "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+        return 1
     fi
 
     if test "${http_code}" -ne 200; then
         beluga_log "API call returned HTTP status code: ${http_code}"
-        "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+        return 1
     fi
 
     return 0
@@ -170,10 +169,10 @@ function changePassword() {
 
   if test ${isPasswordEmpty} -eq 1; then
     beluga_log "The old and new passwords cannot be blank"
-    "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+    return 1
   elif test ${isPasswordSame} -eq 1; then
     beluga_log "old password and new password are the same, therefore cannot update password"
-    "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+    return 1
   else
     # Change the default password.
     # Using set +x to suppress shell debugging
@@ -195,7 +194,7 @@ function changePassword() {
     fi
 
     beluga_log "error changing password"
-    "${STOP_SERVER_ON_FAILURE}" && stop_server || exit 1
+    return 1
   fi
 }
 
@@ -402,6 +401,11 @@ function isPingaccessWas() {
 #
 ########################################################################################################################
 function export_environment_variables() {
+
+  # Common marker files
+  export ADMIN_CONFIGURATION_COMPLETE="${SERVER_ROOT_DIR}/ADMIN_CONFIGURATION_COMPLETE"
+  export POST_START_INIT_MARKER_FILE="${SERVER_ROOT_DIR}/post-start-init-complete"
+
   if isPingaccessWas; then
     export K8S_STATEFUL_SET_NAME="${K8S_STATEFUL_SET_NAME_PINGACCESS_WAS}"
     export K8S_SERVICE_NAME_ADMIN="${K8S_SERVICE_NAME_PINGACCESS_WAS_ADMIN}"
@@ -412,6 +416,13 @@ function export_environment_variables() {
     export CLUSTER_PUBLIC_HOSTNAME="${PA_WAS_CLUSTER_PUBLIC_HOSTNAME}"
 
     export PA_DATA_BACKUP_URL="${BACKUP_URL}/pingaccess-was"
+
+    # If PA_WAS heap settings are defined, then prefer those over the PA ones.
+    export PA_MIN_HEAP="${PA_WAS_MIN_HEAP:-${PA_MIN_HEAP}}"
+    export PA_MAX_HEAP="${PA_WAS_MAX_HEAP:-${PA_MAX_HEAP}}"
+    export PA_MIN_YGEN="${PA_WAS_MIN_YGEN:-${PA_MIN_YGEN}}"
+    export PA_MAX_YGEN="${PA_WAS_MAX_YGEN:-${PA_MAX_YGEN}}"
+    export PA_GCOPTION="${PA_WAS_GCOPTION:-${PA_GCOPTION}}"
   else
     export K8S_STATEFUL_SET_NAME="${K8S_STATEFUL_SET_NAME_PINGACCESS}"
     export K8S_SERVICE_NAME_ADMIN="${K8S_SERVICE_NAME_PINGACCESS_ADMIN}"
@@ -469,6 +480,50 @@ function strip_double_quotes() {
   local temp="${1%\"}"
   temp="${temp#\"}"
   echo "${temp}"
+}
+
+########################################################################################################################
+# Format version for numeric comparison.
+#
+# Arguments
+#   ${1} -> The version string, e.g. 10.0.0.
+########################################################################################################################
+format_version() {
+  printf "%03d%03d%03d%03d" $(echo "${1}" | tr '.' ' ')
+}
+
+########################################################################################################################
+# Get the version of the Pingaccess server in the provided directory.
+#
+# Arguments
+#   ${1} -> The target directory containing server bits.
+########################################################################################################################
+get_version() {
+  local target_dir="${1}"
+
+  local scratch_dir=$(mktemp -d)
+  find "${target_dir}" -name pingaccess-admin-ui*.jar | xargs -I {} cp {} "${scratch_dir}"
+
+  cd "${scratch_dir}"
+  unzip pingaccess-admin-ui*.jar &> /dev/null
+  VERSION=$(grep version META-INF/maven/com.pingidentity.pingaccess/pingaccess-admin-ui/pom.properties | cut -d= -f2)
+  cd - &> /dev/null
+}
+
+########################################################################################################################
+# Get the version of the Pingaccess server packaged in the image.
+########################################################################################################################
+get_image_version() {
+  get_version "${SERVER_BITS_DIR}"
+  IMAGE_VERSION="${VERSION}"
+}
+
+########################################################################################################################
+# Get the currently installed version of the Pingaccess server.
+########################################################################################################################
+get_installed_version() {
+  get_version "${SERVER_ROOT_DIR}"
+  INSTALLED_VERSION="${VERSION}"
 }
 
 # These are needed by every script - so export them when this script is sourced.

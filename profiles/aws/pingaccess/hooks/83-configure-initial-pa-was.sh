@@ -10,6 +10,8 @@ ENDPOINT="https://localhost:9000/pa-admin-api/v3"
 
 is_previously_configured() {
   local get_applications_response=$(make_api_request "${ENDPOINT}"/applications)
+  test $? -ne 0 && return 1
+
   local applications_count=$(jq -n "${get_applications_response}" | jq '.items | length')
 
   if test "${applications_count}" -ge 5; then
@@ -80,7 +82,7 @@ create_pa_virtual_host() {
   export VHOST_HOST="${PA_ADMIN_PUBLIC_HOSTNAME}"
   export VHOST_PORT=443
 
-  beluga_log "Creating PA Virtual Host"
+  beluga_log "Creating PingAccess Admin Virtual Host: ${PA_ADMIN_PUBLIC_HOSTNAME}"
   create_virtual_host
 }
 
@@ -89,7 +91,7 @@ create_pf_virtual_host() {
   export VHOST_HOST="${PF_ADMIN_PUBLIC_HOSTNAME}"
   export VHOST_PORT=443
 
-  beluga_log "Creating PF Virtual Host"
+  beluga_log "Creating PingFederate Admin Virtual Host: ${PF_ADMIN_PUBLIC_HOSTNAME}"
   create_virtual_host
 }
 
@@ -98,7 +100,7 @@ create_kibana_virtual_host() {
   export VHOST_HOST="${KIBANA_PUBLIC_HOSTNAME}"
   export VHOST_PORT=443
 
-  beluga_log "Creating Kibana Virtual Host"
+  beluga_log "Creating Kibana Virtual Host: ${KIBANA_PUBLIC_HOSTNAME}"
   create_virtual_host
 }
 
@@ -107,7 +109,7 @@ create_grafana_virtual_host() {
   export VHOST_HOST="${GRAFANA_PUBLIC_HOSTNAME}"
   export VHOST_PORT=443
 
-  beluga_log "Creating Grafana Virtual Host"
+  beluga_log "Creating Grafana Virtual Host: ${GRAFANA_PUBLIC_HOSTNAME}"
   create_virtual_host
 }
 
@@ -116,7 +118,7 @@ create_prometheus_virtual_host() {
   export VHOST_HOST="${PROMETHEUS_PUBLIC_HOSTNAME}"
   export VHOST_PORT=443
 
-  beluga_log "Creating Prometheus Virtual Host"
+  beluga_log "Creating Prometheus Virtual Host: ${PROMETHEUS_PUBLIC_HOSTNAME}"
   create_virtual_host
 }
 
@@ -261,6 +263,7 @@ create_entity() {
 
   beluga_log "make_api_request response..."
   make_api_request -s -X POST -d "${payload}" "${ENDPOINT}"/"${resource}"
+  return ${?}
 }
 
 update_entity() {
@@ -277,6 +280,7 @@ update_entity() {
 
   beluga_log "make_api_request response..."
   make_api_request -s -X PUT -d "${payload}" "${context_path}"
+  return ${?}
 }
 
 get_entity() {
@@ -284,6 +288,7 @@ get_entity() {
   local id="${2}"
 
   make_api_request "${ENDPOINT}"/"${resource}"/"${id}"
+  return ${?}
 }
 
 is_production_environment() {

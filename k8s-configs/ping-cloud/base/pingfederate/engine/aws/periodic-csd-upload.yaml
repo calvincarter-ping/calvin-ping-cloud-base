@@ -12,7 +12,7 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: pingfederate-periodic-csd-upload
-            image: pingidentity/pingfederate:2006.1-10.0.4
+            image: pingcloud-mirror.jfrog.io/pingidentity/pingfederate:2010-10.1.2
             command:
             - /opt/in/backup-csd-data.sh
             env:

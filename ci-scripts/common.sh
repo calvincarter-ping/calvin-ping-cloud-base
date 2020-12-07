@@ -8,8 +8,7 @@ test "${VERBOSE}" && set -x
 
 # Override environment variables with optional file supplied from the outside
 ENV_VARS_FILE="${1}"
-SKIP_TESTS="${SKIP_TESTS:-pingaccess/01-agent-config-test.sh \
-  pingdirectory/03-backup-restore.sh \
+SKIP_TESTS="${SKIP_TESTS:-pingdirectory/03-backup-restore.sh \
   chaos/01-delete-pa-admin-pod.sh}"
 
 if test -z "${ENV_VARS_FILE}"; then
@@ -41,7 +40,7 @@ if test -z "${ENV_VARS_FILE}"; then
   export AWS_PROFILE=csg
 elif test -f "${ENV_VARS_FILE}"; then
   echo "Using environment variables defined in file ${ENV_VARS_FILE}"
-  source "${ENV_VARS_FILE}"
+  set -a; source "${ENV_VARS_FILE}"; set +a
 else
   echo "ENV_VARS_FILE points to a non-existent file: ${ENV_VARS_FILE}"
   exit 1
@@ -340,6 +339,8 @@ function log_events_exist() {
     kubectl logs "${pod}" -c "${container}" -n "${NAMESPACE}" |
       # Filter out logs that belong to specific log file or that originate from SIEM logs not sent to CW
       grep -vE "^(/opt/out/instance/log|<[0-9]+>)" |
+      grep -vE "^\/opt\/out\/instance\/log\/admin-api.*127\.0\.0\.1\| GET\| \/version\| 200" |
+      grep -vE "^\/opt\/out\/instance\/log\/pingaccess_api_audit.*127\.0\.0\.1\| GET\| \/pa-admin-api\/v3\/version\| 200" |
       tail -50 |
       # remove all ansi escape sequences, remove all '\' and '-', remove '\r'
       sed -E 's/'"$(printf '\x1b')"'\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g' |
@@ -350,6 +351,8 @@ function log_events_exist() {
     # Save current state of logs into a temp file
     kubectl logs "${pod}" -c "${container}" -n "${NAMESPACE}" |
       grep ^"${full_pathname}" |
+      grep -vE "^\/opt\/out\/instance\/log\/admin-api.*127\.0\.0\.1\| GET\| \/version\| 200" |
+      grep -vE "^\/opt\/out\/instance\/log\/pingaccess_api_audit.*127\.0\.0\.1\| GET\| \/pa-admin-api\/v3\/version\| 200" |
       tail -50 |
       # remove all ansi escape sequences, remove all '\' and '-', remove '\r'
       sed -E 's/'"$(printf '\x1b')"'\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g' |
@@ -364,7 +367,7 @@ function log_events_exist() {
   cwatch_log_events=$(aws logs --profile "${AWS_PROFILE}" get-log-events \
     --log-group-name "${LOG_GROUP_NAME}" \
     --log-stream-name "${log_stream}" \
-    --no-start-from-head --limit 150 |
+    --no-start-from-head --limit 500 |
     # Replace groups of 3 and 2 '\' with 1 '\', remove '\r', '\n', replace '\t' with tab spaces,
     # remove all ansi escape sequences, remove all '\' and '-'
     sed -E 's/\\{3,}/\\/g' |

@@ -438,6 +438,11 @@ data:
         </rule>
         <rule>
           key log
+          pattern /^\/opt\/out\/instance\/log\/admin-api.*127\.0\.0\.1\| GET\| \/version\| 200/
+          tag clear
+        </rule>
+        <rule>
+          key log
           pattern /^\/opt\/out\/instance\/log\/admin-api/
           tag temp.admin_api_logs
         </rule>
@@ -540,6 +545,11 @@ data:
         @type rewrite_tag_filter
         <rule>
           key log
+          pattern /^\/opt\/out\/instance\/log\/pingaccess_api_audit.*127\.0\.0\.1\| GET\| \/pa-admin-api\/v3\/version\| 200/
+          tag pa_clear
+        </rule>
+        <rule>
+          key log
           pattern /^\/opt\/out\/instance\/log\/pingaccess_engine_audit/
           tag temp.pingaccess_engine_audit_logs
         </rule>
@@ -560,9 +570,28 @@ data:
         </rule>
         <rule>
           key log
+          pattern /^\/opt\/out\/instance\/upgrade\/log\/audit/
+          tag temp.pingaccess_upgrade_audit_logs
+        </rule>
+        <rule>
+          key log
+          pattern /^\/opt\/out\/instance\/upgrade\/log\/upgrade_status/
+          tag temp.pingaccess_upgrade_status_logs
+        </rule>
+        <rule>
+          key log
+          pattern /^\/opt\/out\/instance\/upgrade\/log\/upgrade/
+          tag temp.pingaccess_upgrade_logs
+        </rule>
+        <rule>
+          key log
           pattern /^(.+)$/
           tag temp.unmatched_logs
         </rule>
+      </match>
+
+      <match pa_clear>
+        @type null
       </match>
 
       <match temp.unmatched_logs>
@@ -603,6 +632,11 @@ data:
         @type rewrite_tag_filter
         <rule>
           key log
+          pattern /^\/opt\/out\/instance\/log\/pingaccess_api_audit.*127\.0\.0\.1\| GET\| \/pa-admin-api\/v3\/version\| 200/
+          tag pawas_clear
+        </rule>
+        <rule>
+          key log
           pattern /^\/opt\/out\/instance\/log\/pingaccess_engine_audit/
           tag temp.pingaccess_engine_audit_logs
         </rule>
@@ -618,9 +652,28 @@ data:
         </rule>
         <rule>
           key log
+          pattern /^\/opt\/out\/instance\/upgrade\/log\/audit/
+          tag temp.pingaccess_upgrade_audit_logs
+        </rule>
+        <rule>
+          key log
+          pattern /^\/opt\/out\/instance\/upgrade\/log\/upgrade_status/
+          tag temp.pingaccess_upgrade_status_logs
+        </rule>
+        <rule>
+          key log
+          pattern /^\/opt\/out\/instance\/upgrade\/log\/upgrade/
+          tag temp.pingaccess_upgrade_logs
+        </rule>
+        <rule>
+          key log
           pattern /^(.+)$/
           tag temp.unmatched_logs
         </rule>
+      </match>
+
+      <match pawas_clear>
+        @type null
       </match>
 
       <match temp.unmatched_logs>
@@ -702,21 +755,29 @@ data:
       </filter>
 
       <filter **>
-        @type record_transformer
-        @id filter_cwagent_stream_transformer
-        enable_ruby true
-        <record>
-          stream_name ${record["kubernetes"]["pod_name"]}_${record["kubernetes"]["namespace_name"]}_${record["kubernetes"]["container_name"]}
-        </record>
-      </filter>
-
-      <filter **>
         @type concat
         key log
         multiline_start_regexp /^\d{4}[-/]\d{1,2}[-/]\d{1,2}/
         separator ""
         flush_interval 5
         timeout_label @normal
+      </filter>
+
+      <filter **>
+        @type grep
+        <exclude>
+          key log
+          pattern /^\d{4}[-/]\d{1,2}[-/]\d{1,2}[\sT]\d{2}:\d{2}:\d{2}Z*\s(W!|I!)/
+        </exclude>
+      </filter>
+
+      <filter **>
+        @type record_transformer
+        @id filter_cwagent_stream_transformer
+        enable_ruby true
+        <record>
+          stream_name ${record["kubernetes"]["pod_name"]}_${record["kubernetes"]["namespace_name"]}_${record["kubernetes"]["container_name"]}
+        </record>
       </filter>
 
       <match **>

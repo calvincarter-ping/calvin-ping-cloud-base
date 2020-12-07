@@ -47,27 +47,6 @@ substitute_vars() {
 }
 
 ########################################################################################################################
-# Check if the provided directories exist.
-#
-# Arguments
-#   ${*} -> The list of directories to check for existence.
-#
-# Returns
-#   0 -> if all directories exist.
-#   1 -> if one or more directories are missing.
-########################################################################################################################
-do_dirs_exist() {
-  status=0
-  for dir in ${*}; do
-    if test ! -d "${dir}"; then
-      log "expected directory '${dir}' does not exist under ${TARGET_DIR_FULL}"
-      status=1
-    fi
-  done
-  return ${status}
-}
-
-########################################################################################################################
 # Clean up on exit. If non-zero exit, then print the log file to stdout before deleting it. Change back to the previous
 # directory. Delete the kustomize build directory, if it exists.
 ########################################################################################################################
@@ -94,10 +73,6 @@ TOOLS_DIR='cluster-tools'
 PING_CLOUD_DIR='ping-cloud'
 BASE_DIR='../base'
 
-# Check for expected sub-directories in the target directory
-do_dirs_exist "${TOOLS_DIR}" "${PING_CLOUD_DIR}"
-test $? -ne 0 && exit 1
-
 # Perform substitution and build in a temporary directory
 TMP_DIR="$(mktemp -d)"
 BUILD_DIR="${TMP_DIR}/${TARGET_DIR_SHORT}"
@@ -111,7 +86,20 @@ test -d "${BASE_DIR}" && cp -pr "${BASE_DIR}" "${TMP_DIR}"
 if test -f 'env_vars'; then
   # Perform the substitutions in a sub-shell so it doesn't pollute the current shell.
   log "flux-command: substituting env_vars into templates"
-  (cd "${BUILD_DIR}"; substitute_vars env_vars .; test -d "${BASE_DIR}" && substitute_vars env_vars "${BASE_DIR}")
+  (
+    cd "${BUILD_DIR}"
+
+    BASE_ENV_VARS="${BASE_DIR}"/env_vars
+    env_vars_file=env_vars
+
+    if test -f "${BASE_ENV_VARS}"; then
+      env_vars_file="$(mktemp)"
+      cat env_vars "${BASE_ENV_VARS}" > "${env_vars_file}"
+      substitute_vars "${env_vars_file}" "${BASE_DIR}"
+    fi
+
+    substitute_vars "${env_vars_file}" .
+  )
   test $? -ne 0 && exit 1
 fi
 

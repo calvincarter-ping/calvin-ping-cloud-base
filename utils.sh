@@ -14,8 +14,8 @@ log() {
 ########################################################################################################################
 # Generate a self-signed certificate for the provided domain. The subject of the certificate will match the domain name.
 # A wildcard SAN (Subject Alternate Name) will be added as well. For example, for the domain foobar.com, the subject
-# name will be "foobar.com" and the SAN "*.foobar.com". The base64 representation of the certificate and key will be
-# exported in environment variables TLS_CRT_BASE64 and TLS_KEY_BASE64, respectively.
+# name will be "foobar.com" and the SAN "*.foobar.com". The PEM and base64 representation of the certificate and key
+# will be exported in environment variables TLS_CRT_PEM, TLS_KEY_PEM, TLS_CRT_BASE64 and TLS_KEY_BASE64, respectively.
 #
 # Arguments
 #   ${1} -> The name of the domain for which to generate the self-signed certificate.
@@ -25,11 +25,13 @@ generate_tls_cert() {
   CERTS_DIR=$(mktemp -d)
   cd "${CERTS_DIR}"
   DOMAIN=${1}
-  openssl req -x509 -nodes -newkey rsa:2048 -days 3650 -sha256 \
+  openssl req -x509 -nodes -newkey rsa:4096 -days 3650 -sha256 \
     -out tls.crt -keyout tls.key \
     -subj "/CN=${DOMAIN}" \
     -reqexts SAN -extensions SAN \
     -config <(cat /etc/ssl/openssl.cnf; printf "[SAN]\nsubjectAltName=DNS:*.${DOMAIN}") > /dev/null 2>&1
+  export TLS_CRT_PEM=$(cat tls.crt)
+  export TLS_KEY_PEM=$(cat tls.key)
   export TLS_CRT_BASE64=$(base64_no_newlines tls.crt)
   export TLS_KEY_BASE64=$(base64_no_newlines tls.key)
   cd - > /dev/null
@@ -138,14 +140,14 @@ testUrl() {
   log "Testing URL: ${url} with basic auth set to ${use_basic_auth}"
 
   if [[ "${use_basic_auth}" = true ]];then
-    local http_code="$(curl -k --max-time "${CURL_TIMEOUT_SECONDS}" \
+    http_code="$(curl -k --max-time "${CURL_TIMEOUT_SECONDS}" \
       -w '%{http_code}' "${url}" \
       -u "${ADMIN_USER}:${ADMIN_PASS}" \
       -H 'X-Xsrf-Header: PingAccess' \
       -o /dev/null 2>/dev/null)"
     exit_code=$?
   else
-    local http_code="$(curl -k --max-time "${CURL_TIMEOUT_SECONDS}" \
+    http_code="$(curl -k --max-time "${CURL_TIMEOUT_SECONDS}" \
       -w '%{http_code}' "${url}" \
       -o /dev/null 2>/dev/null)"
     exit_code=$?
