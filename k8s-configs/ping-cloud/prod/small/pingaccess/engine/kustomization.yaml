@@ -12,3 +12,4 @@ resources:
 patchesStrategicMerge:
 - engine-init-env.yaml
 - hpa-limits.yaml
+- engine-limits.yaml

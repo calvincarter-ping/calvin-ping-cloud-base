@@ -11,4 +11,3 @@ resources:
 
 patchesStrategicMerge:
 - engine-init-env.yaml
-- engine-limits.yaml

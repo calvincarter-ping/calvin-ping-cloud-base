@@ -5,10 +5,22 @@ resources:
 # PingCloud common resources
 - ${K8S_GIT_URL}/k8s-configs/ping-cloud/${KUSTOMIZE_BASE}/base?ref=${K8S_GIT_BRANCH}
 
-# Product common resources
+# PingAccess common shared and deployment resources
 - pingaccess
+- pingaccess/admin
+- pingaccess/engine
+
+# PingAccess WAS common shared and deployment resources
 - pingaccess-was
+- pingaccess-was/admin
+- pingaccess-was/engine
+
+# PingFederate common shared and deployment resources
 - pingfederate
+- pingfederate/admin
+- pingfederate/engine
+
+# PingDirectory common shared and deployment resources
 - pingdirectory
 
 generatorOptions:
