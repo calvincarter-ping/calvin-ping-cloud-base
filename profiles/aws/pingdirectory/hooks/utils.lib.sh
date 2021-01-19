@@ -261,11 +261,7 @@ EOF
 # Add the base entry of USER_BASE_DN if it needs to be added
 ########################################################################################################################
 add_base_entry_if_needed() {
-  num_user_entries=$(dbtest list-entry-containers --backendID "${USER_BACKEND_ID}" 2>/dev/null |
-    grep -i "${USER_BASE_DN}" | awk '{ print $4; }')
-  beluga_log "Number of sub entries of DN ${USER_BASE_DN} in ${USER_BACKEND_ID} backend: ${num_user_entries}"
-
-  if test "${num_user_entries}" && test "${num_user_entries}" -gt 0; then
+  if grep -q "${USER_BASE_DN}" "${REPL_INIT_MARKER_FILE}" &> /dev/null; then
     beluga_log "Replication base DN ${USER_BASE_DN} already added"
     return 0
   else
@@ -277,8 +273,7 @@ add_base_entry_if_needed() {
     beluga_log "Adding replication base DN ${USER_BASE_DN} with contents:"
     cat "${base_entry_ldif}"
 
-    import-ldif -n "${USER_BACKEND_ID}" -l "${base_entry_ldif}" \
-        --includeBranch "${USER_BASE_DN}" --overwriteExistingEntries
+    import-ldif -n "${USER_BACKEND_ID}" -F -l "${base_entry_ldif}"
     import_status=$?
     beluga_log "import user base entry status: ${import_status}"
     return ${import_status}

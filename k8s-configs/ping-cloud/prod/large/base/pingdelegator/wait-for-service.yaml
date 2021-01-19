@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pingdelegator
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-services
+        env:
+        # PingDelegator must wait for the PF runtime to be ready
+        # A space-separated list of deployments or statefulsets that this app should wait for
+        - name: WAIT_FOR_SERVICES
+          value: pingfederate-runtime
