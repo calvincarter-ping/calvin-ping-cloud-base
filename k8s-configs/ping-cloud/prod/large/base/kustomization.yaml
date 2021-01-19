@@ -33,10 +33,10 @@ patchesStrategicMerge:
 - pingfederate/engine-limits.yaml
 
 - pingaccess/engine-init-env.yaml
+- pingaccess/engine-limits.yaml
 - pingaccess/hpa-limits.yaml
 
 - pingaccess-was/engine-init-env.yaml
 - pingaccess-was/engine-limits.yaml
 
 - pingdelegator/wait-for-service.yaml
-- pingdelegator/hpa-limits.yaml

@@ -33,7 +33,7 @@ configMapGenerator:
   - env_vars
   - pingdirectory/env_vars
 
-# Pingdirectory
+# Ping Delegated Admin
 - name: pingdelegator-environment-variables
   behavior: merge
   envs:
@@ -218,7 +218,7 @@ patchesJson6902:
       path: /spec/rules/4/host
       value: logs${ENVIRONMENT}.${TENANT_DOMAIN}
 
-# pingdelegator
+# Ping Delegated Admin
 - target:
     group: extensions
     version: v1beta1
@@ -231,20 +231,6 @@ patchesJson6902:
     - op: replace
       path: /spec/rules/0/host
       value: pingdelegator${ENVIRONMENT}.${TENANT_DOMAIN}
-
-# pingdataconsole
-- target:
-    group: extensions
-    version: v1beta1
-    kind: Ingress
-    name: pingdataconsole-ingress
-  patch: |-
-    - op: replace
-      path: /spec/tls/0/hosts/0
-      value: pingdataconsole${ENVIRONMENT}.${TENANT_DOMAIN}
-    - op: replace
-      path: /spec/rules/0/host
-      value: pingdataconsole${ENVIRONMENT}.${TENANT_DOMAIN}
 
 # Set a hostname for all the headless services so their endpoint IPs are published to Route53
 - target:
@@ -294,15 +280,6 @@ patchesJson6902:
       value: pingdirectory-admin${ENVIRONMENT}.${TENANT_DOMAIN}
     - op: remove
       path: /metadata/annotations/service.beta.kubernetes.io~1aws-load-balancer-internal
-
-# - target:
-#     version: v1
-#     kind: Service
-#     name: pingdelegator
-#   patch: |-
-#     - op: replace
-#       path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
-#       value: pingdelegator-cluster${ENVIRONMENT}.${TENANT_DOMAIN}
 
 patchesStrategicMerge:
 - |-

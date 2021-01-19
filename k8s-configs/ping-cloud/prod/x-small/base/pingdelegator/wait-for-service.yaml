@@ -9,6 +9,7 @@ spec:
       - name: wait-for-services
         env:
         # PingDelegator must wait for the PF runtime to be ready
+        # Also, if its not in primary region then it must wait for the PF admin.
         # A space-separated list of deployments or statefulsets that this app should wait for
         - name: WAIT_FOR_SERVICES
-          value: pingfederate-runtime
+          value:  pingfederate-runtime

@@ -43,17 +43,3 @@ PD_DELEGATOR_DADMIN_API_NAMESPACE=
 # Set to true if the "profile" scope is supported for the Delegated Admin OIDC client on
 # PingFederate and you wish to use it to show the current user's name in the navigation.
 PD_DELEGATOR_PROFILE_SCOPE_ENABLED=false
-
-# FIXME: these are redundant across services - DRY
-# wait-for-services
-PA_CLUSTER_PRIVATE_HOSTNAME=pingaccess-admin
-PA_CLUSTER_PORT=9090
-
-PA_WAS_CLUSTER_PRIVATE_HOSTNAME=pingaccess-was-admin
-PA_WAS_CLUSTER_PORT=9090
-
-PF_CLUSTER_PRIVATE_HOSTNAME=pingfederate-cluster
-PF_CLUSTER_PORT=7600
-
-PD_CLUSTER_PRIVATE_HOSTNAME=pingdirectory
-PD_CLUSTER_PORT=8989

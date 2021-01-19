@@ -17,12 +17,12 @@ spec:
       - name: pingdataconsole
         image: pingcloud-mirror.jfrog.io/pingidentity/pingdataconsole:2006.1-8.1.0.0
         resources:
-          limits:
-            memory: 1Gi
-            cpu: 1
           requests:
-            memory: 1Gi
-            cpu: 1
+            memory: 512Mi
+            cpu: 10m
+          limits:
+            memory: 512Mi
+            cpu: 10m
         ports:
         - containerPort: 8080
           name: http
