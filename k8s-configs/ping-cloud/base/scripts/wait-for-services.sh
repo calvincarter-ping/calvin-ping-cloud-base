@@ -31,6 +31,12 @@ else
             ${PF_ADMIN_SERVER_NAME}.${PF_CLUSTER_PUBLIC_HOSTNAME}:${PF_ADMIN_WAIT_PORT}"
           ;;
 
+        pingfederate-runtime)
+          HOST_PORT_LIST="\
+            ${PF_CLUSTER_PUBLIC_HOSTNAME}:${PF_CLUSTER_PORT} \
+            ${PF_RUNTIME_SERVER_NAME}.${PF_RUNTIME_SERVICE_NAME}:${PF_RUNTIME_WAIT_PORT}"
+          ;;
+
         pingaccess-admin)
           HOST_PORT_LIST="\
             ${PA_CLUSTER_PUBLIC_HOSTNAME}:${PA_CLUSTER_PORT} \
@@ -57,6 +63,12 @@ else
           HOST_PORT_LIST="\
             ${PF_CLUSTER_PRIVATE_HOSTNAME}:${PF_CLUSTER_PORT} \
             ${PF_ADMIN_SERVER_NAME}.${PF_ADMIN_SERVICE_NAME}:${PF_ADMIN_WAIT_PORT}"
+          ;;
+
+        pingfederate-runtime)
+          HOST_PORT_LIST="\
+            ${PF_CLUSTER_PRIVATE_HOSTNAME}:${PF_CLUSTER_PORT} \
+            ${PF_RUNTIME_SERVER_NAME}.${PF_RUNTIME_SERVICE_NAME}:${PF_RUNTIME_WAIT_PORT}"
           ;;
 
         pingaccess-admin)
