@@ -9,11 +9,10 @@ commonLabels:
 resources:
 - ../../../base
 - ../../../base/aws
+<<<<<<< HEAD
 - ../../../base/pingdirectory/aws
 - ../../../base/pingfederate/aws
 - ../../../base/pingaccess/aws
-- ../../../base/pingaccess-was/aws
-- ../../../base/pingdelegator/aws
 
 generatorOptions:
   disableNameSuffixHash: true
@@ -38,5 +37,5 @@ patchesStrategicMerge:
 
 - pingaccess-was/engine-init-env.yaml
 - pingaccess-was/engine-limits.yaml
-
-- pingdelegator/wait-for-service.yaml
+=======
+>>>>>>> [skip pipeline] PDO-1576 add more granular control on all PingCloud base products
