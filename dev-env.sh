@@ -379,30 +379,30 @@ export SKIP_CONFIGURE_AWS=true
 export DEV_TEST_ENV=true
 EOF
 
-    log "Running unit tests"
-    for unit_test_dir in common ci-script-tests pingaccess pingfederate pingdirectory; do
-      log
-      log "=========================================================="
-      log "      Executing unit tests in directory: ${unit_test_dir}            "
-      log "=========================================================="
-      ci-scripts/test/unit/run-unit-tests.sh "${unit_test_dir}" "${TEST_ENV_VARS_FILE}"
-    done
-    log
+    # log "Running unit tests"
+    # for unit_test_dir in common ci-script-tests pingaccess pingfederate pingdirectory; do
+    #   log
+    #   log "=========================================================="
+    #   log "      Executing unit tests in directory: ${unit_test_dir}            "
+    #   log "=========================================================="
+    #   ci-scripts/test/unit/run-unit-tests.sh "${unit_test_dir}" "${TEST_ENV_VARS_FILE}"
+    # done
+    # log
 
 
     log "Waiting for pods in ${NAMESPACE} to be ready..."
 
-    for DEPLOYMENT in $(kubectl get statefulset,deployment -n "${NAMESPACE}" -o name --context "${K8S_CONTEXT}"); do
-      NUM_REPLICAS=$(kubectl get "${DEPLOYMENT}" -o jsonpath='{.spec.replicas}' \
-        -n "${NAMESPACE}" --context "${K8S_CONTEXT}")
-      TIMEOUT=$((NUM_REPLICAS * 900))
-      time kubectl rollout status --timeout "${TIMEOUT}"s "${DEPLOYMENT}" \
-        -n "${NAMESPACE}" -w --context "${K8S_CONTEXT}" | tee -a "${LOG_FILE}"
-    done
+    # for DEPLOYMENT in $(kubectl get statefulset,deployment -n "${NAMESPACE}" -o name --context "${K8S_CONTEXT}"); do
+    #   NUM_REPLICAS=$(kubectl get "${DEPLOYMENT}" -o jsonpath='{.spec.replicas}' \
+    #     -n "${NAMESPACE}" --context "${K8S_CONTEXT}")
+    #   TIMEOUT=$((NUM_REPLICAS * 900))
+    #   time kubectl rollout status --timeout "${TIMEOUT}"s "${DEPLOYMENT}" \
+    #     -n "${NAMESPACE}" -w --context "${K8S_CONTEXT}" | tee -a "${LOG_FILE}"
+    # done
 
 
     log "Running integration tests"
-    for integration_test_dir in pingaccess pingaccess-was pingdirectory pingfederate chaos; do
+    for integration_test_dir in pingdelegator; do
       log
       log "=========================================================="
       log "      Executing integration tests in directory: ${integration_test_dir}            "

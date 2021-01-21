@@ -72,7 +72,7 @@ patchesJson6902:
       path: /spec/template/spec/containers/0/envFrom/-
       value:
         configMapRef:
-          name: pingdirectory-last-update-config
+          name: pingdelegator-last-update-config
 
 ### PingFederate Admin Last Update Config Map ###
 - target:
