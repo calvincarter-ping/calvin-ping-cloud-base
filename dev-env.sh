@@ -402,7 +402,7 @@ EOF
 
 
     log "Running integration tests"
-    for integration_test_dir in pingaccess pingaccess-was pingdirectory pingfederate pingcloud-metadata chaos; do
+    for integration_test_dir in $(find 'ci-scripts/test/integration' -type d -mindepth 1 -maxdepth 1 -exec basename '{}' \;); do
       log
       log "=========================================================="
       log "      Executing integration tests in directory: ${integration_test_dir}            "

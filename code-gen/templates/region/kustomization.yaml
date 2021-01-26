@@ -72,6 +72,20 @@ configMapGenerator:
   - env_vars
   - pingaccess-was/env_vars
 
+# Create the config maps that hold the variable for triggering updates of DA servers
+- name: pingdelegator-last-update-config
+  namespace: ${PING_CLOUD_NAMESPACE}
+  envs:
+  - pingdelegator/env_vars
+
+# Ping Delegated Admin
+- name: pingdelegator-environment-variables
+  behavior: merge
+  envs:
+  - ../base/env_vars
+  - env_vars
+  - pingdelegator/env_vars
+
 # Pingcloud-metadata
 - name: pingcloud-metadata-environment-variables
   behavior: merge
@@ -82,7 +96,4 @@ patchesStrategicMerge:
 
 ### Regional enablement - remove admins, backups, etc. from secondary ###
 ### This patch should be commented out on the primary region ###
-- ../base/ping-cloud/pingaccess/remove-from-secondary-patch.yaml
-- ../base/ping-cloud/pingaccess-was/remove-from-secondary-patch.yaml
-- ../base/ping-cloud/pingdirectory/remove-from-secondary-patch.yaml
-- ../base/ping-cloud/pingfederate/remove-from-secondary-patch.yaml
+- ../base/ping-cloud/remove-from-secondary-patch.yaml
