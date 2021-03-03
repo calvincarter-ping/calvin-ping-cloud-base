@@ -127,8 +127,6 @@ spec:
           emptyDir: {}
         - name: data-dir
           emptyDir: {}
-        - name: out-dir
-          emptyDir: {}
         - name: pingdelegator-init
           configMap:
             name: pingcommon-init
