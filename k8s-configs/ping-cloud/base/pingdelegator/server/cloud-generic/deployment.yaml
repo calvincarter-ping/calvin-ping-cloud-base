@@ -65,7 +65,7 @@ spec:
               name: pingdelegator-environment-variables
       containers:
       - name: pingdelegator
-        image: pingidentity/pingdelegator:latest
+        image: pingcloud-mirror.jfrog.io/pingidentity/pingaccess:2010-6.1.3
         imagePullPolicy: IfNotPresent
         resources:
           requests:
