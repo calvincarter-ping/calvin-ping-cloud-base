@@ -77,7 +77,7 @@ spec:
             name: pingfederate-environment-variables
       containers:
       - name: pingfederate-admin
-        image: pingcloud-mirror.jfrog.io/pingidentity/pingfederate:2010-10.1.2
+        image: pingcloud-virtual.jfrog.io/pingidentity/pingfederate:2101-10.2.1
         imagePullPolicy: IfNotPresent
         env:
         - name: OPERATIONAL_MODE
@@ -124,6 +124,9 @@ spec:
         - name: data-dir
           mountPath: /usr/local/bin/skbn
           subPath: skbn
+        - name: data-dir
+          mountPath: /opt/staging/jmx_prometheus_javaagent-0.14.0.jar
+          subPath: jmx_prometheus_javaagent-0.14.0.jar
         - name: data-dir
           mountPath: /opt/staging/native-s3-ping.jar
           subPath: native-s3-ping.jar

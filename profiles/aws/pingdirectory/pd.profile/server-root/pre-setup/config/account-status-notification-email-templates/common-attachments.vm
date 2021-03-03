@@ -1,0 +1,26 @@
+## This Velocity template file may be used to include attachments in the email
+## messages generated for all types of account status notifications.
+##
+## See the README.txt file in this directory for more information about
+## customizing email message comments.
+##
+## To include an attachment, start a section with the line
+## "----- BEGIN ATTACHMENT -----" and include at least a FILENAME property that
+## specifies the name (without any path information) of the file to be
+## attached. The file must exist in the same directory as the template file.
+## You may also include a CONTENT-TYPE element that specifies the MIME type for
+## the attachment file, and an INLINE element that indicates whether it is
+## intended to be referenced within the body of the HTML-formatted email
+## message (NOTE: if an attached file is to be referenced in the body of an
+## email message, the name should be prefixed with "cid:", like
+##      <img src="cid:company-logo.png">
+##
+## You may include any number of attachments in the message by including each
+## of them in its own attachment section.
+##
+## The following is an example of an attachment:
+##
+## ----- BEGIN ATTACHMENT -----
+## FILENAME: company-logo.png
+## CONTENT-TYPE: image/png
+## INLINE: true

@@ -9,10 +9,10 @@ test -f "${STAGING_DIR}/ds_env_vars" && . "${STAGING_DIR}/ds_env_vars"
 ########################################################################################################################
 function stop_server()
 {
-  SERVER_PID=$(pgrep -alf java | grep 'run.properties' | awk '{ print $1 }')
+  SERVER_PID=$(pgrep -f java)
   kill "${SERVER_PID}"
   while true; do
-    SERVER_PID=$(pgrep -alf java | grep 'run.properties' | awk '{ print $1 }')
+    SERVER_PID=$(pgrep -f java)
     if test -z ${SERVER_PID}; then
         break
     else
@@ -39,7 +39,7 @@ function make_api_request() {
     "${VERBOSE}" && set -x
 
     if test "${curl_result}" -ne 0; then
-        beluga_log "Admin API connection refused with the curl exit code: ${curl_result}"
+        beluga_error "Admin API connection refused with the curl exit code: ${curl_result}"
         return 1
     fi
 
@@ -416,6 +416,7 @@ function export_environment_variables() {
     export CLUSTER_PUBLIC_HOSTNAME="${PA_WAS_CLUSTER_PUBLIC_HOSTNAME}"
 
     export PA_DATA_BACKUP_URL="${BACKUP_URL}/pingaccess-was"
+    export LOG_ARCHIVE_URL="${LOG_ARCHIVE_URL}/pingaccess-was"
 
     # If PA_WAS heap settings are defined, then prefer those over the PA ones.
     export PA_MIN_HEAP="${PA_WAS_MIN_HEAP:-${PA_MIN_HEAP}}"

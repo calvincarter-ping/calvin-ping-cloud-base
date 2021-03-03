@@ -36,15 +36,15 @@ cat <<EOF > "${TOPOLOGY_FILE}"
 }
 EOF
 
-beluga_log 'Downloading custom native S3 ping jar from ping-artifacts bucket'
+beluga_log 'Downloading JMX prometheus Java Agent from ping-artifacts-test bucket'
 
-DST_FILE='/data/native-s3-ping.jar'
+DST_FILE='/data/jmx_prometheus_javaagent-0.14.0.jar'
 wget -qO "${DST_FILE}" \
-    https://ping-artifacts.s3-us-west-2.amazonaws.com/pingfederate/native-s3-ping/0.9.5.Final/native-s3-ping.jar
+    https://ping-artifacts.s3-us-west-2.amazonaws.com/pingcommon/jmx-prometheus-javaagent/0.14.0/jmx_prometheus_javaagent-0.14.0.jar
 
-beluga_log 'Checking for native-s3-ping.jar in data directory'
+beluga_log 'Checking for jmx_prometheus_javaagent jar file in data directory'
 if test ! -f "${DST_FILE}"; then
-    beluga_log "Failed to locate '${{DST_FILE}'" 'ERROR'
+    beluga_log "Failed to locate '${DST_FILE}'" 'ERROR'
     exit 1
 fi
 

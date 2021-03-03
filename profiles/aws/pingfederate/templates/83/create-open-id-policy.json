@@ -1,0 +1,22 @@
+{
+  "id": "dapolicy",
+  "name": "dapolicy",
+  "accessTokenManagerRef": {
+    "id": "${DA_JWT_ID}"
+  },
+  "attributeContract": {
+    "coreAttributes": [{
+      "name": "sub"
+    }]
+  },
+  "attributeMapping": {
+    "attributeContractFulfillment": {
+      "sub": {
+        "source": {
+          "type": "TOKEN"
+        },
+        "value": "sub"
+      }
+    }
+  }
+}

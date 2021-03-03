@@ -19,6 +19,10 @@ rm -f "${POST_START_INIT_MARKER_FILE}"
 beluga_log "post-start: waiting for admin API to be ready"
 wait_for_admin_api_endpoint configArchive/export
 
+beluga_log "post-start: configure DA"
+sh "${HOOKS_DIR}/84-setup-delegated-admin.sh"
+DA_CONFIG_STATUS=${?}
+
 # Replicate admin changes to engine(s)
 beluga_log "post-start: Replicating admin changes to engine(s)"
 sh "${HOOKS_DIR}/95-replicate-engines.sh"
@@ -32,12 +36,14 @@ BACKUP_STATUS=${?}
 beluga_log "post-start: data backup status: ${BACKUP_STATUS}"
 
 # Write the marker file if post-start succeeds.
-if test "${BACKUP_STATUS}" -eq 0 && test "${REPLICATION_STATUS}" -eq 0; then
+if test "${BACKUP_STATUS}" -eq 0 && \
+   test "${REPLICATION_STATUS}" -eq 0 && \
+   test "${DA_CONFIG_STATUS}" -eq 0; then
   touch "${POST_START_INIT_MARKER_FILE}"
   exit 0
 fi
 
 # Kill the container if post-start fails.
 beluga_log "post-start: admin post-start initialization failed"
-SERVER_PID=$(pgrep -alf java | grep 'run.properties' | awk '{ print $1; }')
+SERVER_PID=$(pgrep -f java)
 kill "${SERVER_PID}"

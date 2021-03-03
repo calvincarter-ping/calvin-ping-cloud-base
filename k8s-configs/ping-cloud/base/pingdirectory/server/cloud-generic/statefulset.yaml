@@ -135,6 +135,8 @@ spec:
                 secretKeyRef:
                   name: pingdirectory-passwords
                   key: P14C_ENVIRONMENT_ID
+            - name: TEST
+              value: TEST1
             - name: P14C_CLIENT_ID
               valueFrom:
                 secretKeyRef:

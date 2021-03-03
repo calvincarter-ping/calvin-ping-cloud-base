@@ -6,7 +6,7 @@ PF_DNS_PING_NAMESPACE=placeholder
 
 SERVER_PROFILE_URL=https://github.com/pingidentity/ping-cloud-base.git
 SERVER_PROFILE_PATH=profiles/aws/pingfederate
-SERVER_PROFILE_BRANCH=master
+SERVER_PROFILE_BRANCH=v1.8-release-branch
 
 REGION=us-west-2
 
@@ -69,3 +69,17 @@ PD_CLUSTER_PORT=8989
 # - Set this to false
 # - 90-restore-backup-s3.sh script exit before proceeding if value is false
 RESTORE_BACKUP=true
+
+JAVA_AGENT_OPTS=-javaagent:/opt/staging/jmx_prometheus_javaagent-0.14.0.jar=8080:/opt/out/instance/bin/jmx_export_config.yaml
+
+# DA Configuration
+SKIP_DA_SETUP=false
+DA_PCV_ID=dapcv
+DA_IDP_ADAPTER_HTML_FORM_ID=daidphtml
+DA_JWT_ID=dajwt
+DA_OIDC_POLICY_ID=dapolicy
+DA_EXCLUSIVE_SCOPE_NAME=urn:pingidentity:directory-delegated-admin
+DA_IMPLICIT_GRANT_TYPE_CLIENT_ID=dadmin
+DA_OAUTH_TOKEN_VALIDATOR_CLIENT_ID=dapingdirectory
+DA_OAUTH_TOKEN_VALIDATOR_SECRET=2Federate
+USER_BASE_DN=dc=example,dc=com

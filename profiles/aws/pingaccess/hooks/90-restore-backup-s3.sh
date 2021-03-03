@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 
-. "${HOOKS_DIR}/pingcommon.lib.sh"
 . "${HOOKS_DIR}/utils.lib.sh"
 
 "${VERBOSE}" && set -x
@@ -76,7 +75,7 @@ if ! test -z "${BACKUP_FILE_NAME}" || ! test -f "${OUT_DIR}"/instance/conf/pa.jw
   initializeSkbnConfiguration "${PA_DATA_BACKUP_URL}"
 
   # This is the backup directory on the server
-  SERVER_RESTORE_DIR="/tmp/restore"
+  SERVER_RESTORE_DIR="${OUT_DIR}/restore"
   rm -rf "${SERVER_RESTORE_DIR}"
   mkdir -p "${SERVER_RESTORE_DIR}"
 

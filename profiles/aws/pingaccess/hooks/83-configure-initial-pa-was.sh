@@ -192,8 +192,8 @@ create_prometheus_site() {
 create_argocd_site() {
   export SITE_ID=24
   export SITE_NAME="Argo CD"
-  export SITE_TARGET="argocd-server:443"
-  export SITE_SECURE=false
+  export SITE_TARGET="argocd-server.argocd:443"
+  export SITE_SECURE=true
 
   beluga_log "Creating Argo CD Site"
   create_site
