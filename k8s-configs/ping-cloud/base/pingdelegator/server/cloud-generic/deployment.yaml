@@ -84,8 +84,6 @@ spec:
           - name: data-dir
             mountPath: /usr/local/bin/kubectl
             subPath: kubectl
-          - name: out-dir
-            mountPath: /opt/out
           - name: data-dir
             mountPath: /opt/staging/ds_env_vars
             subPath: ds_env_vars
