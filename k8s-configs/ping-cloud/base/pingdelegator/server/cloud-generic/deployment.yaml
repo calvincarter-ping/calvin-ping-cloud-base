@@ -65,7 +65,7 @@ spec:
               name: pingdelegator-environment-variables
       containers:
       - name: pingdelegator
-        image: pingidentity/pingaccess:6.0.0-alpine-edge
+        image: pingidentity/pingdelegator:2010-4.2.1
         imagePullPolicy: IfNotPresent
         resources:
           requests:
