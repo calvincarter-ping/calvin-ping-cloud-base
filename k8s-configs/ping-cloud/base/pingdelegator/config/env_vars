@@ -48,4 +48,4 @@ PD_DELEGATOR_DADMIN_API_NAMESPACE=
 # PingFederate and you wish to use it to show the current user's name in the navigation.
 PD_DELEGATOR_PROFILE_SCOPE_ENABLED=false
 
-SERVER_PROFILE_DIR=~
+PING_CONTAINER_PRIVILEGED=true
