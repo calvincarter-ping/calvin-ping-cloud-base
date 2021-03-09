@@ -11,7 +11,7 @@ test -f "${STAGING_DIR}/ds_env_vars" && . "${STAGING_DIR}/ds_env_vars"
 #   $@ -> The URL and additional data needed to make the request.
 ########################################################################################################################
 function make_api_request() {
-  #set +x
+  set +x
   http_code=$(curl -k -o ${OUT_DIR}/api_response.txt -w "%{http_code}" \
         --retry ${API_RETRY_LIMIT} \
         --max-time ${API_TIMEOUT_WAIT} \
@@ -21,7 +21,7 @@ function make_api_request() {
         -H "Content-Type: application/json" \
         -H "X-Xsrf-Header: PingFederate" "$@")
   curl_result=$?
-  #"${VERBOSE}" && set -x
+  "${VERBOSE}" && set -x
 
   if test "${curl_result}" -ne 0; then
     beluga_error "Admin API connection refused"

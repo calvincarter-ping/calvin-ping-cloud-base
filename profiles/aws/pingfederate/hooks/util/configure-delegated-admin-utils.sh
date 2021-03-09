@@ -320,7 +320,7 @@ set_implicit_grant_type_client() {
     local implicit_grant_type_payload=$(envsubst < ${TEMPLATES_DIR_PATH}/create-implicit-grant-type.json)
 
     # Build a list of all DA hostname(s) and merge it to redirectUris JSON property.
-    REDIRECT_URIS="${TEMPLATES_DIR_PATH}/redirect-uris-template.json"
+    REDIRECT_URIS=$(envsubst < ${TEMPLATES_DIR_PATH}/redirect-uris-template.json)
     buildRedirectUriList
 
     # Join API JSON payload with redirectUris list.

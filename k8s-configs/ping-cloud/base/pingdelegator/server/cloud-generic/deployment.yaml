@@ -67,6 +67,9 @@ spec:
       - name: pingdelegator
         image: pingidentity/pingdelegator:2010-4.2.1
         imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 0
         resources:
           requests:
             memory: "256Mi"
@@ -84,9 +87,6 @@ spec:
           - name: data-dir
             mountPath: /usr/local/bin/kubectl
             subPath: kubectl
-          - name: data-dir
-            mountPath: /opt/staging/ds_env_vars
-            subPath: ds_env_vars
         readinessProbe:
           exec:
             command: [/opt/liveness.sh]
@@ -117,9 +117,6 @@ spec:
         envFrom:
         - configMapRef:
             name: pingdelegator-environment-variables
-        - secretRef:
-            name: devops-secret
-            optional: true
       volumes:
         - name: ssh-dir
           emptyDir: {}

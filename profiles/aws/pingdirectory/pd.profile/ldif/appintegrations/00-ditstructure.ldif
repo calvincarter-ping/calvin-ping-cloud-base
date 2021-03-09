@@ -23,3 +23,4 @@ objectClass: organizationalUnit
 ou: authsessions
 aci: (targetattr="*")(version 3.0; acl "DA08: Allow the pingfederate admin group to do eveything in this branch";allow (all) groupdn="ldap:///ou=pfadmingrp,ou=groups,o=platformconfig";)
 #aci: (targetattr="*")(version 3.0; acl "Allow the pingfederate user to do everything in this branch"; allow(all) userdn="ldap:///cn=root dns,cn=config";)
+

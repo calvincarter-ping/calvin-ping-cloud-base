@@ -10,9 +10,9 @@ get_pcv() {
 }
 
 testSadPathDataStoreFailure() {
-  # Mock up get_datastore response
+  # Mock up get_datastore as a failure.
   # When calling set_pcv function, its
-  # expected to fail when datastore response returns an error
+  # expected to fail when datastore response returns an error.
   get_datastore() {
     return 1
   }
@@ -24,10 +24,15 @@ testSadPathDataStoreFailure() {
 }
 
 testSadPathCreatePVC() {
+
+  # Mock up get_datastore as a success.
   get_datastore() {
     return 0
   }
 
+  # Mock up make_api_request as a failure.
+  # When calling set_pcv function, its
+  # expected to fail when make_api_request fails to create PCV.
   make_api_request() {
     return 1
   }
@@ -39,10 +44,13 @@ testSadPathCreatePVC() {
 }
 
 testHappyPathCreatePVC() {
+
+  # Mock up get_datastore as a success.
   get_datastore() {
     return 0
   }
 
+  # Mock up make_api_request as a success for creating PCV.
   make_api_request() {
     return 0
   }

@@ -1,3 +1,9 @@
+dn: ou=people,dc=example,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
 dn: uid=user.0,ou=People,dc=example,dc=com
 changetype: add
 objectClass: top
@@ -24,5 +30,5 @@ sn: PingFederate
 cn: Administrator
 givenName: PingFederate
 uid: administrator
-userPassword: 2Federate
+userPassword: 2FederateM0re
 pf-connected-identity: auth-source=pf-local-identity:user-id=administrator

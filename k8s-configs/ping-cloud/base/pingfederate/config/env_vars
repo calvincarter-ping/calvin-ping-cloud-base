@@ -6,7 +6,7 @@ PF_DNS_PING_NAMESPACE=placeholder
 
 SERVER_PROFILE_URL=https://github.com/pingidentity/ping-cloud-base.git
 SERVER_PROFILE_PATH=profiles/aws/pingfederate
-SERVER_PROFILE_BRANCH=v1.8-release-branch
+SERVER_PROFILE_BRANCH=v1.9-release-branch
 
 REGION=us-west-2
 
@@ -75,6 +75,7 @@ JAVA_AGENT_OPTS=-javaagent:/opt/staging/jmx_prometheus_javaagent-0.14.0.jar=8080
 # DA Configuration
 SKIP_DA_SETUP=false
 DA_PCV_ID=dapcv
+DA_PCV_SEARCH_FILTER=uid=${username}
 DA_IDP_ADAPTER_HTML_FORM_ID=daidphtml
 DA_JWT_ID=dajwt
 DA_OIDC_POLICY_ID=dapolicy

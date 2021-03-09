@@ -358,7 +358,7 @@ function log_events_exist() {
     # Save current state of logs into a temp file
     kubectl logs "${pod}" -c "${container}" -n "${NAMESPACE}" |
       # Filter out logs that belong to specific log file or that originate from SIEM logs not sent to CW
-      #grep -vE "^(/opt/out/instance/log|<[0-9]+>)" |
+      grep -vE "^(/opt/out/instance/log|<[0-9]+>)" |
       grep -vE "^\/opt\/out\/instance\/log\/admin-api.*127\.0\.0\.1\| GET\| \/version\| 200" |
       grep -vE "^\/opt\/out\/instance\/log\/pingaccess_api_audit.*127\.0\.0\.1\| GET\| \/pa-admin-api\/v3\/version\| 200" |
       tail -50 |
@@ -395,7 +395,7 @@ function log_events_exist() {
     sed -E 's/\\r//g' |
     sed -E 's/\\n//g' |
     sed -E 's/\\t/'"$(printf '\t')"'/g' |
-    #sed -E 's/\\u001B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g' |
+    sed -E 's/\\u001B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g' |
     sed -E 's/\\//g' |
     sed -E 's/-//g')
   

@@ -49,24 +49,9 @@ dsconfig set-http-servlet-extension-prop \
   --set "response-header:Pragma: no-cache"
 
 #
-# Enable virtual attributes on Ping Directory Server.
-#
-# dsconfig set-virtual-attribute-prop \
-#  --name "Delegated Admin Privilege" \
-#  --set enabled:true \
-#  --set "base-dn:${USER_BASE_DN}" \
-#  --set "filter:(|(objectClass=ds-cfg-user)(objectClass=inetOrgPerson)(objectClass=ubidPerson))"
-
-# dsconfig set-virtual-attribute-prop \
-#  --name "Password Policy State JSON" \
-#  --set enabled:true \
-#  --set require-explicit-request-by-name:true \
-#  --set "base-dn:${USER_BASE_DN}" \
-#  --set "filter:(objectClass=inetOrgPerson)"
-
-
 # Create a CORS policy for the Delegated Admin HTTP servlet extension, where <origin> 
-# represents the public name of the host, proxy, or load balancer that presents the Delegated Admin web application:
+# represents the public name of the host that presents the Delegated Admin web application.
+#
 
 dsconfig create-http-servlet-cross-origin-policy \
   --policy-name "Delegated Admin Cross-Origin Policy" \
@@ -100,12 +85,10 @@ dsconfig create-constructed-attribute \
   --set value-pattern:auth-source=pf-local-identity:user-id={entryUUID}
 
 
-
-# User
+# Setup admin by user configuration.
 
 #
-# The search-base-dn value is the DN of a valid base entry where
-# managed users are stored.
+# The search-base-dn value is the DN of a valid base entry where managed users are stored.
 #
 dsconfig create-rest-resource-type \
   --type user \
@@ -159,9 +142,7 @@ dsconfig create-delegated-admin-attribute \
 
 
 
-
-# Group
-
+# Setup admin by group configuration.
 
 #
 # The search-base-dn value is the DN of a valid base entry where
@@ -193,11 +174,6 @@ dsconfig create-delegated-admin-attribute \
   --type-name groups \
   --attribute-type description \
   --set "display-name:Description"
-
-
-
-
-# Servlet
 
 #
 # Enable the Delegated Admin HTTP servlet.
