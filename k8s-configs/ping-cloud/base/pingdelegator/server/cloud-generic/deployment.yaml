@@ -20,25 +20,8 @@ spec:
         role: pingdelegator
     spec:
       serviceAccount: ping-serviceaccount
-      affinity:
-        podAntiAffinity:
-          # Add a soft requirement for each DA pod to be deployed to a different AZ
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: role
-                      operator: In
-                      values:
-                        - pingdelegator
-                topologyKey: "failure-domain.beta.kubernetes.io/zone"
       initContainers:
       - name: pingdelegator-init
-        # FIXME: switch to same user as app
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsUser: 0
         image: pingcloud-mirror.jfrog.io/bitnami/kubectl:1.15.3
         imagePullPolicy: IfNotPresent
         command:
@@ -67,9 +50,6 @@ spec:
       - name: pingdelegator
         image: pingidentity/pingdelegator:2010-4.2.1
         imagePullPolicy: IfNotPresent
-        securityContext:
-          allowPrivilegeEscalation: false
-          runAsUser: 0
         resources:
           requests:
             memory: "256Mi"
@@ -125,19 +105,19 @@ spec:
         - name: pingdelegator-init
           configMap:
             name: pingcommon-init
-            defaultMode: 0555
+            defaultMode: 0777
         - name: topology-descriptor
           configMap:
             name: topology-descriptor
             optional: true
-            defaultMode: 0644
+            defaultMode: 0777
         - name: ssh-id-key-secret
           secret:
             secretName: ssh-id-key-secret
             optional: true
-            defaultMode: 0400
+            defaultMode: 0777
         - name: known-hosts-config
           configMap:
             name: known-hosts-config
             optional: true
-            defaultMode: 0644
+            defaultMode: 0777
