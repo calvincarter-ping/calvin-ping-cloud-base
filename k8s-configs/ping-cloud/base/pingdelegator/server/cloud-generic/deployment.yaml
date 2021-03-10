@@ -67,9 +67,6 @@ spec:
       - name: pingdelegator
         image: pingidentity/pingdelegator:2010-4.2.1
         imagePullPolicy: IfNotPresent
-        securityContext:
-          runAsNonRoot: false
-          runAsUser: 0
         resources:
           requests:
             memory: "256Mi"
