@@ -113,11 +113,6 @@
 #                           | and monitoring solution.                           |
 #                           | Only used if IS_MULTI_CLUSTER is true.             |
 #                           |                                                    |
-# SECONDARY_TENANT_DOMAINS  | A comma-separated list of tenant domains of the    | No default.
-#                           | secondary regions in multi-region environments,    |
-#                           | e.g. "mini.ping-demo.com,mini.ping-oasis.com".     |
-#                           | Only used if IS_MULTI_CLUSTER is true.             |
-#                           |                                                    |
 # CONFIG_REPO_BRANCH        | The branch within this repository for server       | master
 #                           | profiles, i.e. configuration.                      |
 #                           |                                                    |
@@ -143,11 +138,10 @@
 #                           | URL. For AWS S3 buckets, it must be an S3 URL,     |
 #                           | e.g. s3://backups.                                 |
 #                           |                                                    |
-# CLUSTER_BUCKET_NAME       | The optional name of the S3 bucket where cluster   | The string "unused".
-#                           | information is maintained for PF. Only used if     |
-#                           | IS_MULTI_CLUSTER is true. If provided, PF will be  |
-#                           | configured with NATIVE_S3_PING discovery and will  |
-#                           | precede over DNS_PING, which is always configured. |
+# CLUSTER_BUCKET_NAME       | The name of the S3 bucket where clustering         | The string "unused". This is a
+#                           | information is stored for all stateful Ping apps.  | required property for multi-cluster
+#                           |                                                    | deployments, which is currently only
+#                           |                                                    | supported on AWS.
 #                           |                                                    |
 # DEPLOY_FILE               | The name of the file where the final deployment    | /tmp/deploy.yaml
 #                           | spec is saved before applying it.                  |
@@ -207,8 +201,8 @@ fi
 
 test -z "${IS_MULTI_CLUSTER}" && IS_MULTI_CLUSTER=false
 if "${IS_MULTI_CLUSTER}"; then
-  if test ! "${CLUSTER_BUCKET_NAME}" && test ! "${SECONDARY_TENANT_DOMAINS}"; then
-    echo 'In multi-cluster mode, one or both of CLUSTER_BUCKET_NAME and SECONDARY_TENANT_DOMAINS must be set.'
+  check_env_vars "CLUSTER_BUCKET_NAME"
+  if test $? -ne 0; then
     popd > /dev/null 2>&1
     exit 1
   fi
@@ -226,7 +220,6 @@ log "Initial REGION_NICK_NAME: ${REGION_NICK_NAME}"
 log "Initial PRIMARY_REGION: ${PRIMARY_REGION}"
 log "Initial TENANT_DOMAIN: ${TENANT_DOMAIN}"
 log "Initial PRIMARY_TENANT_DOMAIN: ${PRIMARY_TENANT_DOMAIN}"
-log "Initial SECONDARY_TENANT_DOMAINS: ${SECONDARY_TENANT_DOMAINS}"
 log "Initial GLOBAL_TENANT_DOMAIN: ${GLOBAL_TENANT_DOMAIN}"
 
 log "Initial CONFIG_REPO_BRANCH: ${CONFIG_REPO_BRANCH}"
@@ -256,7 +249,6 @@ export PRIMARY_REGION="${PRIMARY_REGION:-${REGION}}"
 
 export TENANT_DOMAIN="${TENANT_DOMAIN:-us1.poc.ping.cloud}"
 export PRIMARY_TENANT_DOMAIN="${PRIMARY_TENANT_DOMAIN:-${TENANT_DOMAIN}}"
-export SECONDARY_TENANT_DOMAINS="${SECONDARY_TENANT_DOMAINS}"
 export GLOBAL_TENANT_DOMAIN="${GLOBAL_TENANT_DOMAIN:-$(echo "${TENANT_DOMAIN}"|sed -e "s/[^.]*.\(.*\)/global.\1/")}"
 
 export CONFIG_REPO_BRANCH="${CONFIG_REPO_BRANCH:-master}"
@@ -271,7 +263,6 @@ DEPLOY_FILE=${DEPLOY_FILE:-/tmp/deploy.yaml}
 test -z "${K8S_CONTEXT}" && K8S_CONTEXT=$(kubectl config current-context)
 
 ENVIRONMENT_NO_HYPHEN_PREFIX="${ENVIRONMENT#-}"
-export BELUGA_ENV_NAME="${ENVIRONMENT_NO_HYPHEN_PREFIX}"
 
 # Show the values being used for the relevant environment variables.
 log "Using TENANT_NAME: ${TENANT_NAME}"
@@ -285,7 +276,6 @@ log "Using REGION_NICK_NAME: ${REGION_NICK_NAME}"
 log "Using PRIMARY_REGION: ${PRIMARY_REGION}"
 log "Using TENANT_DOMAIN: ${TENANT_DOMAIN}"
 log "Using PRIMARY_TENANT_DOMAIN: ${PRIMARY_TENANT_DOMAIN}"
-log "Using SECONDARY_TENANT_DOMAINS: ${SECONDARY_TENANT_DOMAINS}"
 log "Using GLOBAL_TENANT_DOMAIN: ${GLOBAL_TENANT_DOMAIN}"
 
 log "Using CONFIG_REPO_BRANCH: ${CONFIG_REPO_BRANCH}"
@@ -369,7 +359,6 @@ export PRIMARY_TENANT_DOMAIN=${PRIMARY_TENANT_DOMAIN}
 export GLOBAL_TENANT_DOMAIN=${GLOBAL_TENANT_DOMAIN}
 
 export ENVIRONMENT=${ENVIRONMENT}
-export BELUGA_ENV_NAME="${BELUGA_ENV_NAME}"
 export NAMESPACE=${NAMESPACE}
 
 export CONFIG_PARENT_DIR=aws
@@ -392,7 +381,7 @@ EOF
 
     log "Running unit tests"
     unit_test_failures=0
-    for unit_test_dir in $(find 'ci-scripts/test/unit' -type d -mindepth 1 -maxdepth 1 -exec basename '{}' \;); do
+    for unit_test_dir in common ci-script-tests pingaccess pingfederate pingdirectory; do
       log
       log "==============================================================================================="
       log "      Executing unit tests in directory: ${unit_test_dir}            "
@@ -432,7 +421,8 @@ EOF
 
 
     log "Running integration tests"
-    for integration_test_dir in $(find 'ci-scripts/test/integration' -type d -mindepth 1 -maxdepth 1 -exec basename '{}' \;); do
+    integration_test_failures=0
+    for integration_test_dir in pingaccess pingaccess-was pingdirectory pingfederate pingcloud-metadata chaos; do
       log
       log "==============================================================================================="
       log "      Executing integration tests in directory: ${integration_test_dir}            "

@@ -18,8 +18,7 @@ function make_api_request() {
         --retry-delay 1 \
         --retry-connrefused \
         -u ${PF_ADMIN_USER_USERNAME}:${PF_ADMIN_USER_PASSWORD} \
-        -H "Content-Type: application/json" \
-        -H "X-Xsrf-Header: PingFederate" "$@")
+        -H 'X-Xsrf-Header: PingFederate' "$@")
   curl_result=$?
   "${VERBOSE}" && set -x
 
@@ -28,13 +27,14 @@ function make_api_request() {
     return ${curl_result}
   fi
 
-  if test "${http_code}" -eq 200 || test "${http_code}" -eq 201; then
-    cat ${OUT_DIR}/api_response.txt && rm -f ${OUT_DIR}/api_response.txt
-    return 0                                                            
-  fi                                                                    
-                                                                        
-  beluga_log "API call returned HTTP status code: ${http_code}"         
-  return 1 
+  if test "${http_code}" -ne 200; then
+    beluga_log "API call returned HTTP status code: ${http_code}"
+    return 1
+  fi
+
+  cat ${OUT_DIR}/api_response.txt && rm -f ${OUT_DIR}/api_response.txt
+
+  return 0
 }
 
 ########################################################################################################################
@@ -231,52 +231,16 @@ function configure_tcp_xml() {
   local currentDir="$(pwd)"
   cd "${SERVER_ROOT_DIR}/server/default/conf"
 
-  # DNS_PING should always include the domain name of the local cluster.
-  query_list="${PF_CLUSTER_DOMAIN_NAME}"
-
   if is_multi_cluster; then
-    #####################################
-    #         NATIVE_S3_PING            #
-    #####################################
-
-    # If CLUSTER_BUCKET_NAME is set, then configure NATIVE_S3_PING. It will take precedence over DNS_PING in the
-    # JGroups discovery protocol stack.
-    if test "${CLUSTER_BUCKET_NAME}"; then
-      export S3_PING_PROTOCOL="<org.jgroups.aws.s3.NATIVE_S3_PING \
-          region_name=\"${PRIMARY_REGION}\" \
-          bucket_name=\"${CLUSTER_BUCKET_NAME}\" \
-          bucket_prefix=\"${PING_PRODUCT}\" \
-          remove_all_data_on_view_change=\"true\" \
-          write_data_on_find=\"true\" />"
-    fi
-
-    #####################################
-    #             DNS_PING              #
-    #####################################
-
-    # Sanitize SECONDARY_TENANT_DOMAINS by removing all single/double quotes and replacing comma with space.
-    secondary_domains="$(echo "${SECONDARY_TENANT_DOMAINS}" | tr -d '"' | tr -d "'" | tr ',' ' ')"
-
-    # Handle both Beluga Dev/CI-CD environments and Ping Cloud CDE environments:
-    #   - Beluga Dev/CI-CD environments:
-    #       - If an environment name is provided through the BELUGA_ENV_NAME variable, usually ${USER} or ${GIT_BRANCH},
-    #         then prepend that to the domain name.
-    #       - If no environment is provided through the BELUGA_ENV_NAME variable, then use the domain name as is.
-    #   - Ping Cloud CDEs:
-    #       - Prepend the CDE name provided through the ENV environment variable followed by a dash to the domain name.
-    for domain in ${secondary_domains}; do
-      if "${IS_BELUGA_ENV:-false}"; then
-        test "${BELUGA_ENV_NAME}" &&
-            dns_suffix="-${BELUGA_ENV_NAME}.${domain}" ||
-            dns_suffix=".${domain}"
-      else
-        dns_suffix=".${ENV}-${domain}"
-      fi
-      query_list="${query_list},${PF_CLUSTER_PRIVATE_HOSTNAME}${dns_suffix}"
-    done
+    export S3_PING_PROTOCOL="<org.jgroups.aws.s3.NATIVE_S3_PING \
+        region_name=\"${PRIMARY_REGION}\" \
+        bucket_name=\"${CLUSTER_BUCKET_NAME}\" \
+        bucket_prefix=\"${PING_PRODUCT}\" \
+        remove_all_data_on_view_change=\"true\" \
+        write_data_on_find=\"true\" />"
   fi
 
-  export DNS_PING_PROTOCOL="<dns.DNS_PING dns_query=\"${query_list}\" />"
+  export DNS_PING_PROTOCOL="<dns.DNS_PING dns_query=\"${PF_CLUSTER_DOMAIN_NAME}\" />"
 
   envsubst '${S3_PING_PROTOCOL} ${DNS_PING_PROTOCOL}' \
       < "${STAGING_DIR}/templates/tcp.xml" \
@@ -292,6 +256,18 @@ function configure_tcp_xml() {
 # Set up tcp.xml based on whether it is a single-cluster or multi-cluster deployment.
 ########################################################################################################################
 function configure_cluster() {
+  # Copy customer native-s3-ping, if present.
+  # See PDO-1438 for details. Here's the customization to native S3 ping:
+  # https://github.com/jgroups-extras/native-s3-ping/pull/83/files
+  CUSTOM_NATIVE_S3_PING_JAR='/opt/staging/native-s3-ping.jar'
+  if test -f "${CUSTOM_NATIVE_S3_PING_JAR}"; then
+    TARGET_FILE="${SERVER_ROOT_DIR}"/server/default/lib/native-s3-ping.jar
+    beluga_log "Copying '${CUSTOM_NATIVE_S3_PING_JAR}' to '${TARGET_FILE}'"
+
+    mv "${TARGET_FILE}" "${TARGET_FILE}".bak
+    cp "${CUSTOM_NATIVE_S3_PING_JAR}" "${TARGET_FILE}"
+  fi
+
   # Configure the tcp.xml file for service discovery.
   configure_tcp_xml
 }

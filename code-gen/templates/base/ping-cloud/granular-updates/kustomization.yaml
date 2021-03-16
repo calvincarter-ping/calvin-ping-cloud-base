@@ -39,6 +39,3 @@ resources:
 # PingFederate admin and engine resources
 - ../pingfederate/admin
 - ../pingfederate/engine
-
-# Ping Delegated Admin resources
-- ../pingdelegator/server
