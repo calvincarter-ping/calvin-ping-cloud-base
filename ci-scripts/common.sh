@@ -35,7 +35,10 @@ if test -z "${ENV_VARS_FILE}"; then
   export PRIMARY_TENANT_DOMAIN="${TENANT_DOMAIN}"
   export GLOBAL_TENANT_DOMAIN="${GLOBAL_TENANT_DOMAIN:-$(echo "${TENANT_DOMAIN}"|sed -e "s/[^.]*.\(.*\)/global.\1/")}"
 
-  [[ ${CI_COMMIT_REF_SLUG} != master ]] && export ENVIRONMENT=-${CI_COMMIT_REF_SLUG}
+  if [[ ${CI_COMMIT_REF_SLUG} != master ]]; then
+    export ENVIRONMENT=-${CI_COMMIT_REF_SLUG}
+    export BELUGA_ENV_NAME=${CI_COMMIT_REF_SLUG}
+  fi
   export NAMESPACE=ping-cloud-${CI_COMMIT_REF_SLUG}
 
   export CONFIG_PARENT_DIR=aws
@@ -46,6 +49,8 @@ if test -z "${ENV_VARS_FILE}"; then
   export LOG_ARCHIVE_URL=s3://${CLUSTER_NAME}-logs-bucket
   export BACKUP_URL=s3://${CLUSTER_NAME}-backup-bucket
   export CLUSTER_BUCKET_NAME="${CLUSTER_NAME}-cluster-bucket"
+
+  export EVENT_QUEUE_NAME='platform_event_queue.fifo'
 
   export PROJECT_DIR="${CI_PROJECT_DIR}"
   export AWS_PROFILE=csg
@@ -111,6 +116,9 @@ PINGACCESS_WAS_API=https://pingaccess-was-admin${FQDN}/pa-admin-api/v3
 
 # runtime services:
 PINGACCESS_WAS_RUNTIME=https://pingaccess-was${FQDN}
+
+# Ping Delegated Admin
+PINGDELEGATOR_CONSOLE=https://pingdelegator${FQDN}/delegator
 
 # Pingcloud-metadata service:
 PINGCLOUD_METADATA_API=https://metadata${FQDN}

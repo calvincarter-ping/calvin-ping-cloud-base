@@ -27,6 +27,18 @@ spec:
     spec:
       serviceAccount: ping-serviceaccount
       initContainers:
+      - name: pingfederate-p14c-init
+        image: public.ecr.aws/r2h3l6e4/pingcloud-services/p14c-integration:v1.0.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        command: [ 'python3', '-u', '/app/src/pingfederate_p14c_init.py' ]
+        volumeMounts:
+        - name: data-dir
+          mountPath: /opt/staging
       - name: pingfederate-init
         # FIXME: switch to same user as app
         securityContext:
@@ -77,7 +89,7 @@ spec:
             name: pingfederate-environment-variables
       containers:
       - name: pingfederate-admin
-        image: pingcloud-virtual.jfrog.io/pingidentity/pingfederate:2012.1-10.1.4
+        image: pingcloud-virtual.jfrog.io/pingidentity/pingfederate:2101-10.2.1
         imagePullPolicy: IfNotPresent
         env:
         - name: OPERATIONAL_MODE
@@ -138,6 +150,12 @@ spec:
         - name: data-dir
           mountPath: /opt/staging/ds_env_vars
           subPath: ds_env_vars
+        - name: data-dir
+          mountPath: /opt/staging/p14c_env_vars
+          subPath: p14c_env_vars
+        - name: data-dir
+          mountPath: /opt/staging/solutions_artifacts
+          subPath: solutions_artifacts
         - mountPath: /etc/podinfo
           name: podinfo
         readinessProbe:

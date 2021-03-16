@@ -79,6 +79,7 @@ beluga_owned_k8s_files="@.flux.yaml \
 # shellcheck disable=SC2016
 ENV_VARS_TO_SUBST='${IS_MULTI_CLUSTER}
 ${CLUSTER_BUCKET_NAME}
+${SECONDARY_TENANT_DOMAINS}
 ${REGION}
 ${REGION_NICK_NAME}
 ${PRIMARY_REGION}
@@ -325,6 +326,7 @@ get_min_required_secrets() {
   fi
 
   # If secrets.yaml has contents, then attempt to retrieve each required secret.
+  ALL_MIN_SECRETS_FOUND=false
   if test -s "${ping_cloud_secrets_yaml}"; then
     ALL_MIN_SECRETS_FOUND=true
 
