@@ -5,7 +5,6 @@ resources:
 # PingCloud common resources
 - ${K8S_GIT_URL}/k8s-configs/ping-cloud/${KUSTOMIZE_BASE}/pingcommon?ref=${K8S_GIT_BRANCH}
 
-
 configMapGenerator:
 
 # PingCommon environment variables
