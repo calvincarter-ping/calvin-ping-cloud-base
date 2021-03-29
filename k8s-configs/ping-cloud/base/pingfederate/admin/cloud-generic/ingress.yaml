@@ -20,4 +20,4 @@ spec:
           - path: /
             backend:
               serviceName: pingfederate-admin
-              servicePort: pf-admin
+              servicePort: 9999

@@ -11,7 +11,7 @@ spec:
   ports:
   - port: 9999
     name: pingfederate-admin
-    targetPort: pf-admin
+    targetPort: 443
   selector:
     role: pingfederate-admin
 
