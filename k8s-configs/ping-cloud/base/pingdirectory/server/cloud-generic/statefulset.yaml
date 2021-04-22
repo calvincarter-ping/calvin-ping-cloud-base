@@ -131,7 +131,7 @@ spec:
             limits:
               memory: "2560Mi"
             requests:
-              memory: "2Gi"
+              memory: "2560Mi"
               cpu: "300m"
           env:
             - name: P14C_ENVIRONMENT_ID
@@ -213,12 +213,13 @@ spec:
             # before then, in practice. Run the readiness probe every 5 seconds
             # and tolerate up to 3 failures, so PD cannot falsely be considered
             # READY for more than 15 seconds in a row.
-            initialDelaySeconds: 180
+            initialDelaySeconds: 182
             periodSeconds: 5
             failureThreshold: 3
           livenessProbe:
             exec:
-              command: [liveness.sh]
+              command:
+                - /opt/staging/hooks/99-liveness.sh
             # Health checks will kick in 10 minutes after the pod starts up.
             initialDelaySeconds: 600
             periodSeconds: 30

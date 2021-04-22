@@ -5,13 +5,6 @@ TEMPLATES_DIR_PATH="${STAGING_DIR}"/templates/83
 PF_API_HOST="https://${PF_ADMIN_HOST_PORT}/pf-admin-api/v1"
 
 ########################################################################################################################
-# Retrieve all data stores.
-########################################################################################################################
-get_datastore() {
-  DATA_STORES_RESPONSE=$(make_api_request -X GET "${PF_API_HOST}/dataStores") > /dev/null
-}
-
-########################################################################################################################
 # Retrieve DA password credential validator.
 ########################################################################################################################
 get_pcv() {
@@ -34,11 +27,6 @@ get_pcv() {
 set_pcv() {
   unset PD_DATASTORE_ID
 
-  if ! get_datastore; then
-    beluga_error "Something went wrong when attempting to get datastore response"
-    return 1
-  fi
-
   get_pcv
 
   # If API return 404 status code. Proceed to create PCV.
@@ -46,10 +34,12 @@ set_pcv() {
 
     beluga_log "Creating PCV"
 
-    # Export datastore id. It is required within template create-password-credentials-validator.
-    export PD_DATASTORE_ID=$(jq -n "${DATA_STORES_RESPONSE}" | jq -r '.items[] | select(.name=="pingdirectory-appintegrations") | .id')
-
     pcv_payload=$(envsubst < ${TEMPLATES_DIR_PATH}/create-password-credentials-validator.json)
+
+    beluga_log "Using payload"
+    echo
+    echo "${pcv_payload}" | jq
+    echo
 
     make_api_request -X POST -d "${pcv_payload}" \
       "${PF_API_HOST}/passwordCredentialValidators" > /dev/null
@@ -98,6 +88,11 @@ change_pcv_search_base() {
   new_user_base_dn_payload=$(jq -n "${DA_PCV_RESPONSE}" |\
     jq --arg user_base_dn "${USER_BASE_DN}" '(.configuration.fields[] | select(.name=="Search Base") | .value) |= $user_base_dn')
 
+  beluga_log "Using payload"
+  echo
+  echo "${new_user_base_dn_payload}" | jq
+  echo
+
   make_api_request -X PUT -d "${new_user_base_dn_payload}" \
     "${PF_API_HOST}/passwordCredentialValidators/${DA_PCV_ID}" > /dev/null
   response_status_code=$?
@@ -137,6 +132,11 @@ set_idp_adapter_html_form() {
     beluga_log "Creating IDP adapter html form"
 
     idp_adapter_html_form_payload=$(envsubst < ${TEMPLATES_DIR_PATH}/create-idp-adapter-html-form.json)
+
+    beluga_log "Using payload"
+    echo
+    echo "${idp_adapter_html_form_payload}" | jq
+    echo
 
     make_api_request -X POST -d "${idp_adapter_html_form_payload}" \
       "${PF_API_HOST}/idp/adapters" > /dev/null
@@ -179,6 +179,11 @@ set_idp_adapter_mapping() {
     beluga_log "Creating IDP adapter mapping"
 
     idp_adapter_mapping_payload=$(envsubst < ${TEMPLATES_DIR_PATH}/create-idp-adapter-mapping.json)
+
+    beluga_log "Using payload"
+    echo
+    echo "${idp_adapter_mapping_payload}" | jq
+    echo
 
     make_api_request -X POST -d "${idp_adapter_mapping_payload}" \
       "${PF_API_HOST}/oauth/idpAdapterMappings" > /dev/null
@@ -270,6 +275,11 @@ set_jwt_default_mapping() {
 
     jwt_default_mapping_payload=$(envsubst < ${TEMPLATES_DIR_PATH}/create-jwt-mapping.json)
 
+    beluga_log "Using payload"
+    echo
+    echo "${jwt_default_mapping_payload}" | jq
+    echo
+
     make_api_request -X POST -d "${jwt_default_mapping_payload}" \
       "${PF_API_HOST}/oauth/accessTokenMappings" > /dev/null
     response_status_code=$?
@@ -312,6 +322,11 @@ set_oidc_policy() {
 
     oidc_policy_payload=$(envsubst < ${TEMPLATES_DIR_PATH}/create-open-id-connect-policy.json)
 
+    beluga_log "Using payload"
+    echo
+    echo "${oidc_policy_payload}" | jq
+    echo
+
     make_api_request -X POST -d "${oidc_policy_payload}" \
       "${PF_API_HOST}/oauth/openIdConnect/policies" > /dev/null
     response_status_code=$?
@@ -352,6 +367,11 @@ set_exclusive_scope() {
     beluga_log "Creating exclusive scope"
 
     exclusive_scope_payload=$(envsubst < ${TEMPLATES_DIR_PATH}/create-exclusive-scope.json)
+
+    beluga_log "Using payload"
+    echo
+    echo "${exclusive_scope_payload}" | jq
+    echo
 
     make_api_request -X POST -d "${exclusive_scope_payload}" \
       "${PF_API_HOST}/oauth/authServerSettings/scopes/exclusiveScopes" > /dev/null
@@ -398,6 +418,11 @@ setAllowedOrigins() {
 
   beluga_log "adding the following allowedOrigns"
   echo "${AUTH_SERVER_SETTINGS_PAYLOAD}" | jq -r ".allowedOrigins"
+
+  beluga_log "Using payload"
+  echo
+  echo "${AUTH_SERVER_SETTINGS_PAYLOAD}" | jq
+  echo
 
   make_api_request -X PUT -d "${AUTH_SERVER_SETTINGS_PAYLOAD}" \
     "${PF_API_HOST}/oauth/authServerSettings" > /dev/null
@@ -502,6 +527,11 @@ set_implicit_grant_type_client() {
     # Join API JSON payload with redirectUris list.
     implicit_grant_type_payload=$(echo "${implicit_grant_type_payload}" ${REDIRECT_URIS} | jq -s add)
 
+    beluga_log "Using payload"
+    echo
+    echo "${implicit_grant_type_payload}" | jq
+    echo
+
     make_api_request -X POST -d "${implicit_grant_type_payload}" \
       "${PF_API_HOST}/oauth/clients" > /dev/null
     response_status_code=$?
@@ -513,7 +543,19 @@ set_implicit_grant_type_client() {
     beluga_log "Implicit grant type, '${DA_IMPLICIT_GRANT_TYPE_CLIENT_ID}', created successfully"
   else
     beluga_log "Implicit grant type, '${DA_IMPLICIT_GRANT_TYPE_CLIENT_ID}', already exist"
+
+    # Enable implicit client.
+    beluga_log "Enable implicit grant type client, (DA  -> PF)"
+    set_client_ability "${DA_IMPLICIT_GRANT_TYPE_CLIENT_ID}" "${DA_IMPLICIT_CLIENT_RESPONSE}" "true"
+    enable_implicit_client_status=$?
+
+    if test ${enable_implicit_client_status} -ne 0; then
+      beluga_error "Failed to enable implicit grant type client"
+      return ${enable_implicit_client_status}
+    fi
   fi
+
+  return 0
 }
 
 ########################################################################################################################
@@ -603,14 +645,95 @@ set_oauth_token_validator_client() {
     beluga_log "OAuth token validator client, '${DA_OAUTH_TOKEN_VALIDATOR_CLIENT_ID}', already exist"
 
     # Sync password with PD.
-    # This is done just in case password has been changed when injecting secret.
+    # This is done just in case someone has modified DA_OAUTH_TOKEN_VALIDATOR_SECRET.
     if ! sync_oauth_token_validator_password; then
-      beluga_error "Something went wrong when synchronizing oauth token secret with PD"
+      beluga_error "Something went wrong when synchronizing oauth token secret, DA_OAUTH_TOKEN_VALIDATOR_SECRET, with PD"
       return 1
     fi
-
     beluga_log "OAuth token validator client password synced successfully with PingDirectory"
+
+    # Enable OAuth token validator.
+    beluga_log "Enable OAuth token validator client, (PD -> PF)"
+    set_client_ability "${DA_OAUTH_TOKEN_VALIDATOR_CLIENT_ID}" "${DA_OAUTH_TOKEN_VAL_CLIENT_RESPONSE}" "true"
+    enable_oauth_token_validator_client_status=$?
+
+    if test ${enable_oauth_token_validator_client_status} -ne 0; then
+      beluga_error "Failed to enable OAuth token validator client"
+      return ${enable_oauth_token_validator_client_status}
+    fi
+
   fi
+
+  return 0
+}
+
+########################################################################################################################
+# Wrapper function that will disable the 2 required clients implicit and OAuth ATV) for Delegated Admin.
+#
+# Variables Used:
+#   ${DA_IMPLICIT_GRANT_TYPE_CLIENT_ID} -> The name of the implicit client.
+#   ${DA_IMPLICIT_CLIENT_RESPONSE} -> The JSON response generated by the function get_implicit_grant_type_client.
+#   ${DA_OAUTH_TOKEN_VALIDATOR_CLIENT_ID} -> The name of the OAuth token validator client.
+#   ${DA_OAUTH_TOKEN_VAL_CLIENT_RESPONSE} -> The JSON response generated by the function get_implicit_grant_type_client.
+########################################################################################################################
+disable_client_wrapper() {
+
+  # Disable implicit grant type client, (DA  -> PF)
+  if get_implicit_grant_type_client; then
+    set_client_ability "${DA_IMPLICIT_GRANT_TYPE_CLIENT_ID}" "${DA_IMPLICIT_CLIENT_RESPONSE}" "false"
+    disable_implicit_client_status=$?
+
+    if test ${disable_implicit_client_status} -ne 0; then
+      beluga_error "Failed to disable implicit grant type client"
+      return ${disable_implicit_client_status}
+    fi
+  fi
+  
+  # Disable OAuth token validator client, (PD -> PF)
+  if get_oauth_token_validator_client; then
+    set_client_ability "${DA_OAUTH_TOKEN_VALIDATOR_CLIENT_ID}" "${DA_OAUTH_TOKEN_VAL_CLIENT_RESPONSE}" "false"
+    disable_oauth_token_validator_client_status=$?
+
+    if test ${disable_oauth_token_validator_client_status} -ne 0; then
+      beluga_error "Failed to disable OAuth token validator client"
+      return ${disable_oauth_token_validator_client_status}
+    fi
+  fi
+  
+  return 0
+}
+
+########################################################################################################################
+# Disable OAuth client within PingFederate.
+#
+# Variables Used:
+#   
+#   ${1} -> The name of the client you want to disable.
+#   ${2} -> The JSON payload that will update the /oauth/clients/:id endpoint.
+#   ${3} -> The enable or disable switch for client. ('true' => enable, 'false' => disable)
+########################################################################################################################
+set_client_ability() {
+  client_id="$1"
+  client_response_payload="$2"
+  client_ability="$3"
+
+  oauth_token_val_payload=$(jq -n "${client_response_payload}" | jq --arg client_ability "${client_ability}" '.enabled = $client_ability' )
+
+  beluga_log "Using payload and setting client enabled property to '${client_ability}'"
+  echo "${oauth_token_val_payload}"
+  echo
+  echo "${oauth_token_val_payload}" | jq
+  echo
+
+  make_api_request -X PUT -d "${oauth_token_val_payload}" \
+    "${PF_API_HOST}/oauth/clients/${client_id}" > /dev/null
+  response_status_code=$?
+  
+  if test ${response_status_code} -ne 0; then
+    return ${response_status_code}
+  fi
+
+  return 0
 }
 
 ########################################################################################################################
